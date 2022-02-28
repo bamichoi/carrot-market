@@ -1,13 +1,32 @@
 import type { NextPage } from "next";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
 import Button from "../components/button";
 import Input from "../components/input";
-import { cls } from "../libs/utils";
+import { cls } from "../libs/client/utils";
+import useMutation from "../libs/client/useMutation";
 
+interface EnterForm {
+  email?: string;
+  phone?: string;
+}
 const Enter: NextPage = () => {
+  const [enter, { loading, data, error }] = useMutation("/api/users/enter");
+  const [submitting, setSubmitting] = useState(false);
+  const { register, watch, reset, handleSubmit } = useForm();
   const [method, setMethod] = useState<"email" | "phone">("email");
-  const onEmailClick = () => setMethod("email");
-  const onPhoneClick = () => setMethod("phone");
+  const onEmailClick = () => {
+    setMethod("email");
+    reset();
+  };
+  const onPhoneClick = () => {
+    setMethod("phone");
+    reset();
+  };
+  const onValid = (data: EnterForm) => {
+    enter(data);
+  };
+  console.log(loading, data, error);
   return (
     <div className="mt-16 px-4">
       <h3 className="text-center text-3xl font-bold">Enter to Carrot</h3>
@@ -39,12 +58,22 @@ const Enter: NextPage = () => {
             </button>
           </div>
         </div>
-        <form className="mt-8 flex flex-col space-y-4">
+        <form
+          className="mt-8 flex flex-col space-y-4"
+          onSubmit={handleSubmit(onValid)}
+        >
           {method === "email" ? (
-            <Input name="email" label="Email address" type="email" required />
+            <Input
+              register={register("email", { required: true })}
+              name="email"
+              label="Email address"
+              type="email"
+              required
+            />
           ) : null}
           {method === "phone" ? (
             <Input
+              register={register("phone")}
               name="phone"
               label="Phone number"
               type="number"
@@ -54,7 +83,7 @@ const Enter: NextPage = () => {
           ) : null}
           {method === "email" ? <Button text={"Get login link"} /> : null}
           {method === "phone" ? (
-            <Button text={"Get one-time password"} />
+            <Button text={submitting ? "loading" : "Get one-time password"} />
           ) : null}
         </form>
 
