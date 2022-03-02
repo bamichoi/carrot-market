@@ -1,7 +1,7 @@
 import type { NextPage } from "next";
-import FloatingButton from "../components/floating-button";
-import Item from "../components/item";
-import Layout from "../components/layout";
+import FloatingButton from "@component/floating-button";
+import Item from "@component/item";
+import Layout from "@component/layout";
 
 const Home: NextPage = () => {
   return (
