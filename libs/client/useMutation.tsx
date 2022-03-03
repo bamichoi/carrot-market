@@ -18,7 +18,7 @@ export default function useMutation(url: string): UseMutationResult {
     fetch(url, {
       method: "POST",
       headers: {
-        "Content-ytpe": "application/json",
+        "Content-type": "application/json",
       },
       body: JSON.stringify(data),
     })

@@ -12,7 +12,6 @@ interface EnterForm {
 }
 const Enter: NextPage = () => {
   const [enter, { loading, data, error }] = useMutation("/api/users/enter");
-  const [submitting, setSubmitting] = useState(false);
   const { register, watch, reset, handleSubmit } = useForm();
   const [method, setMethod] = useState<"email" | "phone">("email");
   const onEmailClick = () => {
@@ -23,10 +22,10 @@ const Enter: NextPage = () => {
     setMethod("phone");
     reset();
   };
-  const onValid = (data: EnterForm) => {
-    enter(data);
+  const onValid = (validForm: EnterForm) => {
+    if (loading) return;
+    enter(validForm);
   };
-  console.log(loading, data, error);
   return (
     <div className="mt-16 px-4">
       <h3 className="text-center text-3xl font-bold">Enter to Carrot</h3>
@@ -83,7 +82,7 @@ const Enter: NextPage = () => {
           ) : null}
           {method === "email" ? <Button text={"Get login link"} /> : null}
           {method === "phone" ? (
-            <Button text={submitting ? "loading" : "Get one-time password"} />
+            <Button text={"Get one-time password"} />
           ) : null}
         </form>
 
