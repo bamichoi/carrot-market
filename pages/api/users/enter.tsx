@@ -1,28 +1,55 @@
+import mail from "@sendgrid/mail";
+import twilio from "twilio";
 import { NextApiRequest, NextApiResponse } from "next";
-import withHandler from "@libs/server/withHandler";
+import withHandler, { ResponseType } from "@libs/server/withHandler";
 import client from "@libs/server/client";
 
-async function handler(req: NextApiRequest, res: NextApiResponse) {
+mail.setApiKey(process.env.SENDGRID_API_KEY!);
+const twilioClient = twilio(process.env.TWILIO_SID, process.env.TWILIO_TOKEN);
+
+async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse<ResponseType>
+) {
   const { phone, email } = req.body;
-  const payload = phone ? { phone: +phone } : { email };
+  const user = phone ? { phone: +phone } : email ? { email } : null;
+  if (!user) return res.status(400).json({ ok: false });
+  const payload = Math.floor(100000 + Math.random() * 900000) + "";
   const token = await client.token.create({
     data: {
-      payload: "1234",
+      payload,
       user: {
         connectOrCreate: {
           where: {
-            ...payload,
+            ...user,
           },
           create: {
             name: "Anonymous",
-            ...payload,
+            ...user,
           },
         },
       },
     },
   });
-  console.log(token);
-  res.status(200).end();
+  if (phone) {
+    /* const message = await twilioClient.messages.create({
+      messagingServiceSid: process.env.TWILIO_MSID,
+      to: process.env.MY_PHONE!,
+      body: `Your login token is ${payload}`,
+    });
+    console.log(message); */
+  } else if (email) {
+    /*  const email = await mail.send({
+      from: "cbs412@naver.com",
+      to: "cbs412@naver.com",
+      subject: "Your Carrot Market Verification Eamil",
+      text: `Your token is ${payload}`,
+      html: `<strong>Your token is ${payload}</strong>`,
+    });
+    console.log(email); */
+  }
+
+  res.json({ ok: true });
 }
 
 export default withHandler("POST", handler);
