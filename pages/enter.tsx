@@ -1,10 +1,11 @@
 import type { NextPage } from "next";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import Button from "@components/button";
-import Input from "@components/input";
+import { useRouter } from "next/router";
 import { cls } from "@libs/client/utils";
 import useMutation from "@libs/client/useMutation";
+import Button from "@components/button";
+import Input from "@components/input";
 
 interface EnterForm {
   email?: string;
@@ -19,7 +20,7 @@ interface MutationResult {
 const Enter: NextPage = () => {
   const [enter, { loading, data, error }] =
     useMutation<MutationResult>("/api/users/enter");
-  const [confirmToken, { loading: tokenLoading, data: tokenDaata }] =
+  const [confirmToken, { loading: tokenLoading, data: tokenData }] =
     useMutation<MutationResult>("/api/users/confirm");
   const { register, watch, reset, handleSubmit } = useForm<EnterForm>();
   const { register: tokenRegister, handleSubmit: tokenHandleSubmit } =
@@ -41,6 +42,12 @@ const Enter: NextPage = () => {
     if (tokenLoading) return;
     confirmToken(validForm);
   };
+  const router = useRouter();
+  useEffect(() => {
+    if (tokenData?.ok) {
+      router.push("/");
+    }
+  }, [tokenData, router]);
   return (
     <div className="mt-16 px-4">
       <h3 className="text-center text-3xl font-bold">Enter to Carrot</h3>
