@@ -5,11 +5,17 @@ import Item from "@components/item";
 import Layout from "@components/layout";
 import useUser from "@libs/client/useUser";
 import useSWR from "swr";
-import { Product } from "@prisma/client";
+import { Fav, Product } from "@prisma/client";
+
+interface ProductWithFavs extends Product {
+  _count: {
+    favs: number;
+  };
+}
 
 interface ProductResponse {
   ok: boolean;
-  products: Product[];
+  products: ProductWithFavs[];
 }
 
 const Home: NextPage = () => {
@@ -29,7 +35,7 @@ const Home: NextPage = () => {
             title="iPhone 14"
             price={product.price}
             comments={1}
-            hearts={1}
+            hearts={product._count.favs}
           />
         ))}
         <FloatingButton href="/products/upload">
