@@ -12,6 +12,7 @@ interface StreamsResponse {
 
 const Stream: NextPage = () => {
   const { data } = useSWR<StreamsResponse>("/api/steams");
+
   return (
     <Layout hasTabBar title="라이브">
       <div className=" space-y-4 divide-y-[1px]">
@@ -25,7 +26,7 @@ const Stream: NextPage = () => {
             </a>
           </Link>
         ))}
-        <FloatingButton href="/live/create">
+        <FloatingButton href="/streams/create">
           <svg
             className="h-6 w-6"
             fill="none"
