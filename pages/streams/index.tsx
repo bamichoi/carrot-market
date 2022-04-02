@@ -14,15 +14,12 @@ interface StreamsResponse {
 const Stream: NextPage = () => {
   const [page, setPage] = useState(1);
   const [mergedData, setMergedData] = useState<Stream[]>([]);
-  console.log(page);
-  console.log(mergedData);
   const { data } = useSWR<StreamsResponse>(`/api/streams?page=${page}`);
   const handleScroll = () => {
     const scrollHeight = document.documentElement.scrollHeight;
     const scrollTop = document.documentElement.scrollTop;
     const clientHeight = document.documentElement.clientHeight;
     if (scrollTop + clientHeight >= scrollHeight) {
-      console.log("next page");
       setPage((prev) => prev + 1);
     }
   };
@@ -30,10 +27,8 @@ const Stream: NextPage = () => {
     if (data) setMergedData((prev) => prev.concat(data?.streams));
   }, [data]);
   useEffect(() => {
-    console.log("event listen");
     window.addEventListener("scroll", handleScroll);
     return () => {
-      console.log("event removed");
       window.removeEventListener("scroll", handleScroll);
     };
   }, [setPage, page]);
