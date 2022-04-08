@@ -6,7 +6,8 @@ import Layout from "@components/layout";
 import useUser from "@libs/client/useUser";
 import useSWR from "swr";
 import { Fav, Product } from "@prisma/client";
-
+import Image from "next/image";
+import tokki from "../public/tokki.jpeg";
 export interface ProductWithCount extends Product {
   _count: {
     favs: number;
