@@ -6,6 +6,7 @@ interface ItemProps {
   price: number;
   comments: number;
   hearts: number;
+  image: string;
 }
 
 export default function Item({

@@ -15,7 +15,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       <div className="mx-auto w-full max-w-xl">
         <Component {...pageProps} />
       </div>
-      <Script
+      {/* <Script
         strategy="lazyOnload"
         async
         defer
@@ -31,7 +31,7 @@ function MyApp({ Component, pageProps }: AppProps) {
             });
           };
         }}
-      ></Script>
+      ></Script> */}
     </SWRConfig>
   );
 }

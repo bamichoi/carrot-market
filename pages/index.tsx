@@ -4,10 +4,13 @@ import FloatingButton from "@components/floating-button";
 import Item from "@components/item";
 import Layout from "@components/layout";
 import useUser from "@libs/client/useUser";
-import useSWR from "swr";
+import useSWR, { SWRConfig } from "swr";
 import { Fav, Product } from "@prisma/client";
 import Image from "next/image";
 import tokki from "../public/tokki.jpeg";
+import client from "@libs/server/client";
+import { stringify } from "querystring";
+
 export interface ProductWithCount extends Product {
   _count: {
     favs: number;
@@ -22,7 +25,6 @@ interface ProductResponse {
 const Home: NextPage = () => {
   const { user, isLoading } = useUser();
   const { data } = useSWR<ProductResponse>("/api/products");
-  console.log(data);
   return (
     <Layout title="홈" hasTabBar>
       <Head>
@@ -33,10 +35,11 @@ const Home: NextPage = () => {
           <Item
             id={product.id}
             key={product.id}
-            title="iPhone 14"
+            title={product.name}
             price={product.price}
             comments={1}
-            hearts={product._count.favs}
+            hearts={product._count?.favs}
+            image={product.image}
           />
         ))}
         <FloatingButton href="/products/upload">
@@ -60,4 +63,31 @@ const Home: NextPage = () => {
     </Layout>
   );
 };
-export default Home;
+
+const Page: NextPage<{ products: ProductWithCount[] }> = ({ products }) => {
+  return (
+    <SWRConfig
+      value={{
+        fallback: {
+          "/api/products": {
+            ok: true,
+            products,
+          },
+        },
+      }}
+    >
+      <Home />
+    </SWRConfig>
+  );
+};
+
+export async function getServerSideProps() {
+  const products = await client.product.findMany({});
+  return {
+    props: {
+      products: JSON.parse(JSON.stringify(products)),
+    },
+  };
+}
+
+export default Page;
