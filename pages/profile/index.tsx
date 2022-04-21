@@ -1,10 +1,12 @@
 import useUser from "@libs/client/useUser";
 import { cls } from "@libs/client/utils";
+import { withSsrSession } from "@libs/server/withSession";
 import { Review, User } from "@prisma/client";
-import type { NextPage } from "next";
+import type { NextPage, NextPageContext } from "next";
 import Link from "next/link";
-import useSWR from "swr";
+import useSWR, { SWRConfig } from "swr";
 import Layout from "../../components/layout";
+import client from "@libs/server/client";
 
 interface ReviewWithUser extends Review {
   createBy: User;
@@ -18,6 +20,7 @@ interface ReviewsResponse {
 const Profile: NextPage = () => {
   const { user } = useUser();
   const { data } = useSWR<ReviewsResponse>("/api/reviews");
+  console.log(user);
   return (
     <Layout hasTabBar title="나의 캐럿">
       <div className="px-4">
@@ -146,4 +149,32 @@ const Profile: NextPage = () => {
     </Layout>
   );
 };
-export default Profile;
+
+const Page: NextPage<{ profile: User }> = ({ profile }) => {
+  return (
+    <SWRConfig
+      value={{
+        fallback: {
+          "/api/users/me": { ok: true, profile },
+        },
+      }}
+    >
+      <Profile />
+    </SWRConfig>
+  );
+};
+
+export const getServerSideProps = withSsrSession(async function ({
+  req,
+}: NextPageContext) {
+  const profile = await client.user.findUnique({
+    where: { id: req?.session.user?.id },
+  });
+  return {
+    props: {
+      profile: JSON.parse(JSON.stringify(profile)),
+    },
+  };
+});
+
+export default Page;
