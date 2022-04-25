@@ -29,6 +29,7 @@ async function handler(
       post,
     });
   }
+  await res.unstable_revalidate("/community");
   if (req.method === "GET") {
     const {
       query: { latitude, longitude },
