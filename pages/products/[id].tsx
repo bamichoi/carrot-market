@@ -1,4 +1,4 @@
-import type { NextPage } from "next";
+import type { GetStaticPaths, GetStaticProps, NextPage } from "next";
 import { useRouter } from "next/router";
 import Button from "../../components/button";
 import Layout from "../../components/layout";
@@ -8,6 +8,7 @@ import { Product, User } from "@prisma/client";
 import useMutation from "@libs/client/useMutation";
 import { cls } from "@libs/client/utils";
 import Image from "next/image";
+import client from "@libs/server/client";
 
 interface ProductWithUser extends Product {
   user: User;
@@ -20,7 +21,11 @@ interface ItemDetailResponse {
   isLiked: boolean;
 }
 
-const ItemDetail: NextPage = () => {
+const ItemDetail: NextPage<ItemDetailResponse> = ({
+  product,
+  relatedProducts,
+  isLiked,
+}) => {
   const router = useRouter();
   const { mutate } = useSWRConfig();
   const { data, mutate: boundMutate } = useSWR<ItemDetailResponse>(
@@ -33,7 +38,9 @@ const ItemDetail: NextPage = () => {
     //mutate("/api/users/me", (prev: any) => ({ ok: !prev.ok }), false);
     toggleFav({});
   };
-
+  if (router.isFallback) {
+    return <Layout title="Loading 4 U">I love you</Layout>;
+  }
   return (
     <Layout canGoBack seoTitle="Product Detail">
       <div className="px-4  py-4">
@@ -41,16 +48,16 @@ const ItemDetail: NextPage = () => {
           <div className="relative pb-80">
             <Image
               layout="fill"
-              src={`https://imagedelivery.net/NiEQojp7grwLNewSnbjV5Q/${data?.product.image}/public`}
+              src={`https://imagedelivery.net/NiEQojp7grwLNewSnbjV5Q/${product.image}/public`}
               className="h-96 bg-slate-300 object-cover"
             />
           </div>
           <div className="flex cursor-pointer items-center space-x-3 border-t border-b py-3">
-            {data?.product?.user?.avatar ? (
+            {product?.user?.avatar ? (
               <Image
                 width={48}
                 height={48}
-                src={`https://imagedelivery.net/NiEQojp7grwLNewSnbjV5Q/${data?.product?.user?.avatar}/avatar`}
+                src={`https://imagedelivery.net/NiEQojp7grwLNewSnbjV5Q/${product.user?.avatar}/avatar`}
                 className="h-12 w-12 rounded-full bg-slate-500"
               />
             ) : (
@@ -59,9 +66,9 @@ const ItemDetail: NextPage = () => {
 
             <div>
               <p className="text-sm font-medium text-gray-700">
-                {data?.product?.user?.name}
+                {product?.user?.name}
               </p>
-              <Link href={`/users/profiles/${data?.product?.user?.id}`}>
+              <Link href={`/users/profiles/${product?.user?.id}`}>
                 <a className="text-xs font-medium text-gray-500">
                   View profile &rarr;
                 </a>
@@ -69,13 +76,11 @@ const ItemDetail: NextPage = () => {
             </div>
           </div>
           <div className="mt-5">
-            <h1 className="text-3xl font-bold text-gray-900">
-              {data?.product.name}
-            </h1>
+            <h1 className="text-3xl font-bold text-gray-900">{product.name}</h1>
             <span className="mt-3 block text-2xl text-gray-900">
-              ${data?.product.price}
+              ${product.price}
             </span>
-            <p className=" my-6 text-gray-700">{data?.product.description}</p>
+            <p className=" my-6 text-gray-700">{product.description}</p>
             <div className="flex items-center justify-between space-x-2">
               <Button large text="Talk to seller" />
               <button
@@ -87,7 +92,7 @@ const ItemDetail: NextPage = () => {
                     : "text-gray-400 hover:bg-gray-100 hover:text-gray-500"
                 )}
               >
-                {data?.isLiked ? (
+                {isLiked ? (
                   <svg
                     className="h-6 w-6"
                     fill="currentColor"
@@ -124,7 +129,7 @@ const ItemDetail: NextPage = () => {
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Similar items</h2>
           <div className=" mt-6 grid grid-cols-2 gap-4">
-            {data?.relatedProducts?.map((product) => (
+            {relatedProducts?.map((product) => (
               <Link href={`/products/${product.id}`} key={product.id}>
                 <a>
                   <div>
@@ -143,4 +148,57 @@ const ItemDetail: NextPage = () => {
     </Layout>
   );
 };
+
+export const getStaticPaths: GetStaticPaths = () => {
+  return {
+    paths: [],
+    fallback: true,
+  };
+};
+
+export const getStaticProps: GetStaticProps = async (ctx) => {
+  if (!ctx?.params?.id) {
+    return {
+      props: {},
+    };
+  }
+  const product = await client.product.findUnique({
+    where: {
+      id: +ctx.params.id.toString(),
+    },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          avatar: true,
+        },
+      },
+    },
+  });
+  const terms = product?.name.split(" ").map((word) => ({
+    name: {
+      contains: word,
+    },
+  }));
+  const relatedProducts = await client.product.findMany({
+    where: {
+      OR: terms,
+      AND: {
+        id: {
+          not: product?.id,
+        },
+      },
+    },
+  });
+  const isLiked = false;
+  return {
+    props: {
+      product: JSON.parse(JSON.stringify(product)),
+      relatedProduct: JSON.parse(JSON.stringify(relatedProducts)),
+      isLiked,
+    },
+  };
+};
+
 export default ItemDetail;
