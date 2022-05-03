@@ -1,4 +1,4 @@
-import { Stream } from "@prisma/client";
+import { Stream as StreamModel } from "@prisma/client";
 import type { NextPage } from "next";
 import { useRouter } from "next/router";
 import useSWR from "swr";
@@ -7,7 +7,6 @@ import Layout from "../../components/layout";
 import Message from "../../components/message";
 import useMutation from "@libs/client/useMutation";
 import useUser from "@libs/client/useUser";
-import { useEffect } from "react";
 
 interface StreamMessage {
   message: string;
@@ -18,7 +17,7 @@ interface StreamMessage {
   };
 }
 
-interface StreamWithMessages extends Stream {
+interface StreamWithMessages extends StreamModel {
   messages: StreamMessage[];
 }
 
