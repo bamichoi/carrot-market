@@ -9,7 +9,7 @@ export function middleware(req: NextRequest, ev: NextFetchEvent) {
   console.log(req.url);
   if (!req.url.includes("/api")) {
     if (!req.url.includes("/enter") && !req.cookies.carrotsession) {
-      return NextResponse.redirect("/enter");
+      return NextResponse.redirect(new URL("/enter", req.url));
     }
   }
   // console.log(req.geo.city); // 호스팅 업체에 의해 제공됨
