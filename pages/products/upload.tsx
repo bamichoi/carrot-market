@@ -8,7 +8,6 @@ import Layout from "../../components/layout";
 import TextArea from "../../components/textarea";
 import { Product } from "@prisma/client";
 import { useRouter } from "next/router";
-import { route } from "next/dist/server/router";
 
 interface UploadProductForm {
   name: string;
